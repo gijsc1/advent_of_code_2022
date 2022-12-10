@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
-use crate::move_operation::error::Error::{DynamicError, LocalError};
 
 /// A type to combine multiple possible errors, because apparently this is not part of the stdlib?
 #[derive(Debug)]
@@ -35,9 +34,9 @@ impl Display for Error {
 }
 
 pub fn parse_error<T>(msg: &'static str) ->Result<T,Error>{
-    return Err(LocalError {error_type:"parse error",msg:msg})
+    return Err(Error::LocalError {error_type:"parse error",msg:msg})
 }
 
 pub fn dyn_parse_error<T>(msg: String)-> Result<T,Error>{
-    return Err(DynamicError {error_type:"parse error",msg:msg});
+    return Err(Error::DynamicError {error_type:"parse error",msg:msg});
 }
