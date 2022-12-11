@@ -33,10 +33,10 @@ impl Display for Error {
     }
 }
 
-pub fn parse_error<T>(msg: &'static str) ->Result<T,Error>{
-    return Err(Error::LocalError {error_type:"parse error",msg:msg})
+pub fn parse_error(msg: &'static str) ->Error{
+    return Error::LocalError {error_type:"parse error",msg:msg}
 }
 
-pub fn dyn_parse_error<T>(msg: String)-> Result<T,Error>{
-    return Err(Error::DynamicError {error_type:"parse error",msg:msg});
+pub fn dyn_parse_error<T>(msg: String)-> Error{
+    return Error::DynamicError {error_type:"parse error",msg:msg};
 }
