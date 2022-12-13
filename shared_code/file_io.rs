@@ -9,6 +9,7 @@ pub fn get_lines(filename: &str) -> impl Iterator<Item=String>
     return lines;
 }
 
+#[allow(dead_code)]
 pub fn get_string(filename:&str) -> String{
     let mut file = fs::File::open(filename).expect("Error while opeing file");
     let mut result:String = String::new();

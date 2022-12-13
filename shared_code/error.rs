@@ -6,6 +6,7 @@ use std::num::ParseIntError;
 pub enum  Error{
     ParseIntError(ParseIntError),
     IOError(std::io::Error),
+    #[allow(dead_code)]
     LocalError{error_type:&'static str,msg:&'static str},
     DynamicError{error_type:&'static str,msg:String},
 }
@@ -33,10 +34,12 @@ impl Display for Error {
     }
 }
 
+#[allow(dead_code)]
 pub fn parse_error(msg: &'static str) ->Error{
     return Error::LocalError {error_type:"parse error",msg:msg}
 }
 
+#[allow(dead_code)]
 pub fn dyn_parse_error<T>(msg: String)-> Error{
     return Error::DynamicError {error_type:"parse error",msg:msg};
 }
