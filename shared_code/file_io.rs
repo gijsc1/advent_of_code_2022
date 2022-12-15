@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader, Read};
 
+#[allow(dead_code)]
 pub fn get_lines(filename: &str) -> impl Iterator<Item=String>
 {
     let file = fs::File::open(filename).expect("Error while opening file");
