@@ -40,6 +40,36 @@ pub fn parse_error(msg: &'static str) ->Error{
 }
 
 #[allow(dead_code)]
-pub fn dyn_parse_error<T>(msg: String)-> Error{
+pub fn dyn_parse_error(msg: String)-> Error{
     return Error::DynamicError {error_type:"parse error",msg:msg};
+}
+
+#[allow(dead_code)]
+pub fn parse_prefix<'a>(s:&'a str,prefix:&str)->Result<&'a str,Error>{
+    if let Some(rem) = s.strip_prefix(prefix){
+        Ok(rem)
+    } else {
+        Err(dyn_parse_error(format!("Expected: '{}'",prefix)))
+    }
+}
+
+
+#[allow(dead_code)]
+pub fn parse_posnum(mut s:&str)->Result<(&str,i32),Error>{
+    let mut is_neg = false;
+    if let Ok(rem) = parse_prefix(s,"-"){
+        is_neg = true;
+        s = rem;
+    }
+    let i = s.find(|c:char|!c.is_ascii_digit()).unwrap_or(s.len());
+    let mut val:i32 = s[0..i].parse()?;
+    if is_neg{
+        val= val*-1;
+    }
+    Ok((&s[i..],val))
+    // if let Some(rem) = s.strip_prefix(prefix){
+    //     Ok(rem)
+    // } else {
+    //     Err(parse_error(format!("Expected: '{}'",prefix).as_str()))
+    // }
 }
