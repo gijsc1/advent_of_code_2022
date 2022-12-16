@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::error::{dyn_parse_error, Error};
+use crate::error::{Error};
 use crate::parsing::Parsable;
 // #[path="../../shared_code/parsing.rs"]
 // mod parsing;

@@ -1,4 +1,4 @@
-use crate::error::{dyn_parse_error, Error, parse_error};
+use crate::error::{dyn_parse_error, Error};
 
 #[allow(dead_code)]
 fn parse_prefix<'a>(s:&'a str,prefix:&str)->Result<&'a str,Error>{
