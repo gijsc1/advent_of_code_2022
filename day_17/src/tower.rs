@@ -1,21 +1,55 @@
 use std::fmt::{Display, Formatter};
-use std::iter::Cycle;
-use crate::constants::{Coordinate, LEFT_SPAWN_DISTANCE, TOWERWIDTH, UP_SPAWN_DISTANCE, Xcoord, Ycoord};
+use std::hash::{Hash, Hasher};
+use std::iter::{Cycle, Peekable, Zip};
+use std::ops::Range;
+use crate::constants::{Coordinate, LEFT_SPAWN_DISTANCE, TOWER_HASH_LIMIT, TOWERWIDTH, UP_SPAWN_DISTANCE, Xcoord, Ycoord};
 use crate::field::Field;
 use crate::field::Field::{EMPTY, ROCK};
 use crate::rock::Rock;
 use crate::vent::{Direction, Vents};
 use std::slice::Iter;
 
-
+type Row = u8;
 pub struct Tower {
     /// Field stored in row major order.
     /// (0,0) represents the bottom left corner
-    layout: Vec<[Field; TOWERWIDTH]>,
+    layout: Vec<Row>,
     pub extra_height: u128
 }
 
+pub struct TowerHash([Row;TOWER_HASH_LIMIT]);
+
+impl Hash for TowerHash {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for r in self.0.iter(){
+            (*r).hash(state)
+        }
+        //to make different towers prefix free, as is required by the hash contract
+        //u8::MAX should not be a valid row, and so should never be part of a layout.
+        u8::MAX.hash(state)
+    }
+}
+
+impl PartialEq<Self> for TowerHash {
+    fn eq(&self, other: &Self) -> bool {
+        self.0==other.0
+        // self.0.zip(&other.0).all(|(r1,r2)|*r1==*r2)
+    }
+}
+
+impl Eq for TowerHash{}
+
 impl Tower{
+
+    pub fn get_hashable_layout(&self) -> TowerHash{
+        let limit = self.get_height().min(TOWER_HASH_LIMIT);
+        let mut retval = [u8::MAX;TOWER_HASH_LIMIT];
+        for (i,row) in self.layout[self.get_height()-limit..self.get_height()].iter().enumerate(){
+            retval[i] = *row;
+        }
+        TowerHash(retval)
+    }
+
     pub fn new<'a>() -> Tower{
         Tower{ layout: Vec::new(),extra_height:0 }
     }
@@ -31,30 +65,35 @@ impl Tower{
     pub fn get_value(&self,coord:Coordinate)->Field{
         let (x,y) = coord;
         if x<0 || x>= TOWERWIDTH as isize || y<0 {
-            Field::ROCK
+            ROCK
         } else if y >= self.get_height() as isize {
-            Field::EMPTY
+            EMPTY
         } else {
             // println!("debug: y={y}, height={}",self.get_height());
             let row =self.layout[y as usize];
-            row[x as usize]
+            if row & (1<<x) > 0{
+                ROCK
+            } else {
+                EMPTY
+            }
         }
     }
 
     fn add_row(&mut self){
-        self.layout.push([EMPTY;TOWERWIDTH]);
+        self.layout.push(0);
     }
 
     pub fn set_rock(&mut self,(x,y):Coordinate){
         while y - self.get_height() as isize>=0{
             self.add_row();
         }
-        self.layout[y as usize][x as usize]= ROCK
+        let mut row = self.layout. get_mut(y as usize).unwrap();
+        *row  = *row | 1<<x;
     }
 
-    pub fn add_rock(&mut self, rock:Rock, vents:&mut Cycle<Iter<'_,Direction>>){
+    pub fn add_rock(&mut self, rock:Rock, vents: &mut Peekable<Cycle<Zip<Iter<Direction>, Range<usize>>>>){
         let mut location = self.get_spawnpoint();
-        for direction in vents{
+        for (direction,_d_index) in vents{
             // println!("rock:{rock:?} is now at {},{} moving {direction:?}",location.0,location.1);
             if rock.can_move(self,*direction,location){
                 location.0 = *direction+location.0;
@@ -67,9 +106,9 @@ impl Tower{
                 break;
             }
         }
-        if self.get_height()> 1000000{
-            self.try_cutoff();
-        }
+        // if self.get_height()> 1000000{
+        //     self.try_cutoff();
+        // }
 
     }
 
@@ -97,10 +136,10 @@ impl Tower{
 
 impl Display for Tower{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for row in self.layout.iter().rev(){
+        for y in (0..self.layout.len()).rev(){
             write!(f,"|")?;
-            for field in row{
-                write!(f,"{field}")?;
+            for x in 0..TOWERWIDTH{
+                write!(f,"{}",self.get_value((x as Xcoord, y as Ycoord)))?;
             }
             write!(f,"|\n")?;
         }
