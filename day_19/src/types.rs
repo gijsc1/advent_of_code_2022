@@ -1,0 +1,14 @@
+pub type OreRobot = usize;
+pub type ClayRobot = usize;
+pub type ObsRobot = usize;
+pub type GeodeRobot = usize;
+pub type Time = usize;
+pub type Ore = usize;
+pub type Obsidan = usize;
+pub type Clay = usize;
+pub type Geode = usize;
+pub type State = (OreRobot,Ore,ClayRobot,Clay,ObsRobot,Obsidan,GeodeRobot,Geode);
+pub type PassedOre = bool;
+pub type PassedClay = bool;
+pub type PassedObs = bool;
+pub type PassState = (PassedOre,PassedClay,PassedObs);
