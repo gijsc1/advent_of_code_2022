@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::num::ParseIntError;
+use std::num::{ParseIntError, TryFromIntError};
 
 /// A type to combine multiple possible errors, because apparently this is not part of the stdlib?
 #[derive(Debug)]
@@ -20,6 +20,12 @@ impl From<ParseIntError> for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Error::IOError(err)
+    }
+}
+
+impl From<TryFromIntError> for Error{
+    fn from(_err: TryFromIntError) -> Self {
+        Error::LocalError { error_type: "Conversion error", msg: "Failed to convert signed to unsigned, value was probably negative" }
     }
 }
 
